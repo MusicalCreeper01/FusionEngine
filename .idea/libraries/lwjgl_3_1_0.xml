@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="lwjgl 3.1.0">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/compiled/libs/lwjgl" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/../gson-2.8.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../lwjgl-source-2.9.3.zip!/src/generated" />
+      <root url="jar://$PROJECT_DIR$/../lwjgl-source-2.9.3.zip!/src/java" />
+      <root url="jar://$PROJECT_DIR$/../lwjgl-source-2.9.3.zip!/src/templates" />
+    </SOURCES>
+    <jarDirectory url="file://$PROJECT_DIR$/compiled/libs/lwjgl" recursive="false" />
+  </library>
+</component>

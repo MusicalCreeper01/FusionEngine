@@ -1,0 +1,7 @@
+{
+  "name": "Default Theme",
+  "background": {
+    "src": "resources/background.png",
+    "repeat": false
+  }
+}

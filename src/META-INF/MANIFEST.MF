@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Class-Path: libs/lwjgl/lwjgl.jar libs/lwjgl/lwjgl_util.jar libs/lwjgl/
+ jinput.jar libs/lwjgl/lzma.jar libs/gson-2.8.0.jar libs/slick-util.ja
+ r
+Main-Class: com.fusionengine.main.FusionEngine
+
