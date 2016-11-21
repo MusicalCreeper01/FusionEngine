@@ -19,11 +19,11 @@ public class Theme {
 
     public class Background {
         public String src;
-        public boolean repeat;
+        public boolean stretch;
 
         public Background(String s, boolean b){
             this.src = s;
-            this.repeat = b;
+            this.stretch = b;
         }
     }
 

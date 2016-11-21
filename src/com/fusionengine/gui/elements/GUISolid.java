@@ -1,17 +1,15 @@
 package com.fusionengine.gui.elements;
 
 import com.fusionengine.gui.GUIElement;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.util.Color;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
-import org.newdawn.slick.util.ResourceLoader;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glVertex2f;
 
 public class GUISolid extends GUIElement{
 
@@ -41,7 +39,12 @@ public class GUISolid extends GUIElement{
         this.height = height;
         this.preserveRatio = preserveRatio;
         try {
-            texture = TextureLoader.getTexture("PNG", new FileInputStream(tex));//ResourceLoader.getResourceAsStream(tex));
+            System.out.println(tex);
+            String type = tex.split("\\.")[1].toUpperCase();
+            type = type == "JPEG" ? "JPG" : type;
+
+            texture = TextureLoader.getTexture(type, new FileInputStream(tex));//ResourceLoader.getResourceAsStream(tex));
+
             System.out.println("Texture loaded: "+texture);
             System.out.println(">> Image width: "+texture.getImageWidth());
             System.out.println(">> Image height: "+texture.getImageHeight());
@@ -49,24 +52,9 @@ public class GUISolid extends GUIElement{
             System.out.println(">> Texture height: "+texture.getTextureHeight());
             System.out.println(">> Texture ID: "+texture.getTextureID());
 
-            /*if(fitRatio){
-                float ratio = texture.getTextureWidth() / texture.getTextureHeight();
-                int texwidth = texture.getTextureWidth();
-                int texheight= texture.getTextureHeight();
+            System.out.println(">> Enforcing Ratio: "+preserveRatio);
+            System.out.println(">> Image Ratio: " + ((double)texture.getImageHeight() / texture.getImageWidth()));
 
-                System.out.println("Sepecified width: " + width);
-                System.out.println("Sepecified height: " + height);
-                System.out.println("Ratio: " + ratio);
-
-                if(texwidth>texheight){
-                    height = (int)(ratio * width);
-                }else if (texheight>texwidth){
-                    width = (int)(ratio*height);
-                }
-
-                System.out.println("New width: " + width);
-                System.out.println("New height: " + height);
-            }*/
         }catch(IOException ex){
             ex.printStackTrace();
             System.out.println("Error loading texture " + tex);
@@ -76,24 +64,13 @@ public class GUISolid extends GUIElement{
     @Override
     public void render(int w, int h){
 
-
-//        glColor4f(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
         glEnable(GL_TEXTURE_2D);
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
         texture.bind();
         glBegin(GL_QUADS);
-        /*glTexCoord2f(0,0);
-        glVertex2f(x,y);
-        glTexCoord2f(1,0);
-        glVertex2f(x+width,y);
-        glTexCoord2f(1,1);
-        glVertex2f(x+width,y+height);
-        glTexCoord2f(0,1);
-        glVertex2f(x,y+height);*/
 
         float uvw = ((texture.getImageWidth() * 1.0f) / texture.getTextureWidth());
         float uvh = ((texture.getImageHeight() * 1.0f) / texture.getTextureHeight());
-
-
 
         if(!this.relativePosition) {
             if(preserveRatio) {
@@ -131,29 +108,46 @@ public class GUISolid extends GUIElement{
                 int relWidth = (w-this.right)-this.left;
                 int relHeight= (h-this.bottom)-this.top;
 
-//                System.out.println(w + "/" + h);
+                double ratio1 = (double)texture.getImageHeight() / texture.getImageWidth();
+                double ratio2 = (double)texture.getImageWidth() / texture.getImageHeight();
 
-                if(relWidth>relHeight){
-                    glTexCoord2f(0, 0);
-                    glVertex2f(this.left, this.top);
-                    glTexCoord2f(uvw, 0);
-                    glVertex2f(relWidth, this.top);
-                    glTexCoord2f(uvw, uvh);
-                    glVertex2f(relWidth, relWidth);
-                    glTexCoord2f(0, uvh);
-                    glVertex2f(this.left, relWidth);
-//                    System.out.println(relWidth);
-                }else if (relHeight>relWidth){
-                    glTexCoord2f(0, 0);
-                    glVertex2f(this.left, this.top);
-                    glTexCoord2f(uvw, 0);
-                    glVertex2f(relHeight, this.top);
-                    glTexCoord2f(uvw, uvh);
-                    glVertex2f(relHeight, relHeight);
-                    glTexCoord2f(0, uvh);
-                    glVertex2f(this.left, relHeight);
-//                    System.out.println(relHeight);
+                int tw = 0;
+                int th = 0;
+
+                th = relHeight;
+                tw = (int)(th*ratio2);
+
+                if(tw < relWidth){
+                    tw = relWidth;
+                    th = (int)(tw*ratio1);
                 }
+
+                glTexCoord2f(0, 0);
+                glVertex2f(0, 0);
+                glTexCoord2f(uvw, 0);
+                glVertex2f(tw, 0);
+                glTexCoord2f(uvw, uvh);
+                glVertex2f(tw, th);
+                glTexCoord2f(0, uvh);
+                glVertex2f(0, th);
+
+                /*
+                th = h;
+                tw = (int)(th*ratio2);
+
+                if(tw < w){
+                    tw = w;
+                    th = (int)(tw*ratio1);
+                }
+
+                glTexCoord2f(0, 0);
+                glVertex2f(0, 0);
+                glTexCoord2f(uvw, 0);
+                glVertex2f(tw, 0);
+                glTexCoord2f(uvw, uvh);
+                glVertex2f(tw, th);
+                glTexCoord2f(0, uvh);
+                glVertex2f(0, th);*/
             }else {
                 glTexCoord2f(0, 0);
                 glVertex2f(this.left, this.top);

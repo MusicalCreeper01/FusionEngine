@@ -7,16 +7,16 @@ import com.fusionengine.gui.GUIScreen;
 import com.fusionengine.gui.elements.GUISolid;
 import com.fusionengine.gui.elements.GUIText;
 import com.fusionengine.gui.util.Fonts;
+import com.fusionengine.shaders.Shader;
 import com.fusionengine.theme.Theme;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
-import static org.lwjgl.opengl.GL11.*;
-
-import org.lwjgl.util.Color;
-import org.newdawn.slick.TrueTypeFont;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.*;
+import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.UnicodeFont;
+
+import static org.lwjgl.opengl.GL11.*;
 
 
 public class FusionEngine {
@@ -52,7 +52,11 @@ public class FusionEngine {
             Display.setDisplayMode(new DisplayMode(800,600));
             Display.setTitle("Fusion Engine");
             Display.create();
+
             Display.setVSyncEnabled(true);
+
+            Keyboard.create();
+            Mouse.create();
         } catch (LWJGLException e) {
             e.printStackTrace();
             System.exit(0);
@@ -67,6 +71,8 @@ public class FusionEngine {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+
         glViewport(0,0,width,height);
         glMatrixMode(GL_MODELVIEW);
 
@@ -76,7 +82,8 @@ public class FusionEngine {
         glMatrixMode(GL_MODELVIEW);
 
 
-
+        Shader shader = new Shader("assets/shaders/basic.vert", "assets/shaders/basic.frag");
+        Shader.addScreenShader(shader);
 
         Theme.LoadThemes();
 
@@ -106,6 +113,8 @@ public class FusionEngine {
         GUIScreen menu = new GUIScreen();
 
 
+
+
         while (!Display.isCloseRequested()) {
             width = Display.getWidth();
             height = Display.getHeight();
@@ -116,12 +125,13 @@ public class FusionEngine {
                 glLoadIdentity();
                 glOrtho(0, width, height, 0, 1, -1);
                 glMatrixMode(GL_MODELVIEW);
-            };
+            }
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             Input.poll();
 
+            Shader.render();
 
             if(mode == Mode.Theme){
                 themeScreen.render(width, height);
@@ -157,7 +167,7 @@ public class FusionEngine {
 
                 if(Input.getKeyDown(Keyboard.KEY_RETURN)){
                     mode = Mode.Menu;
-                    GUISolid background = new GUISolid(Theme.themes[theme].root + Theme.themes[theme].background.src, 0, 0, width, height, true);
+                    GUISolid background = new GUISolid(Theme.themes[theme].root + Theme.themes[theme].background.src, 0, 0, width, height, !Theme.themes[theme].background.stretch);
                     background.relativePosition = true;
                     menu.addElement(background);
                 }
@@ -183,6 +193,7 @@ public class FusionEngine {
             }
 
 
+//            ARBShaderObjects.glUseProgramObjectARB(0);
 
             if (Display.isCloseRequested()) {
                 Display.destroy();
