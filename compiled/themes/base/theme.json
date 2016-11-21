@@ -3,5 +3,8 @@
   "background": {
     "src": "resources/background.png",
     "stretch": false
+  },
+  "buttons": {
+    "src": "resources/button.png"
   }
 }

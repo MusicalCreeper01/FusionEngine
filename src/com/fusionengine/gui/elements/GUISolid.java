@@ -16,10 +16,7 @@ public class GUISolid extends GUIElement{
     private Texture texture;
 
     public Color color;
-    public int x = 0;
-    public int y = 0;
-    public int width = 0;
-    public int height = 0;
+
     public boolean preserveRatio;
 
     public GUISolid (Color color, int x, int y, int width, int height){
@@ -37,6 +34,11 @@ public class GUISolid extends GUIElement{
         this.y = y;
         this.width = width;
         this.height = height;
+        this.preserveRatio = preserveRatio;
+        loadTexture(tex, this.preserveRatio);
+    }
+
+    public void loadTexture(String tex, boolean preserveRatio){
         this.preserveRatio = preserveRatio;
         try {
             System.out.println(tex);
@@ -64,13 +66,23 @@ public class GUISolid extends GUIElement{
     @Override
     public void render(int w, int h){
 
-        glEnable(GL_TEXTURE_2D);
-        GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        texture.bind();
-        glBegin(GL_QUADS);
+        float uvw = 1;
+        float uvh = 1;
 
-        float uvw = ((texture.getImageWidth() * 1.0f) / texture.getTextureWidth());
-        float uvh = ((texture.getImageHeight() * 1.0f) / texture.getTextureHeight());
+        if(texture != null) {
+            //System.out.println("texture: " + texture.getTextureID());
+            glEnable(GL_TEXTURE_2D);
+            GL13.glActiveTexture(GL13.GL_TEXTURE0);
+            texture.bind();
+
+            uvw = ((texture.getImageWidth() * 1.0f) / texture.getTextureWidth());
+            uvh = ((texture.getImageHeight() * 1.0f) / texture.getTextureHeight());
+        }else{
+            glColor4f(color.getRed()/255.0f, color.getGreen()/255.0f, color.getBlue()/255.0f, color.getAlpha()/255.0f);
+        }
+        glPushMatrix();
+
+        glBegin(GL_QUADS);
 
         if(!this.relativePosition) {
             if(preserveRatio) {
@@ -130,24 +142,6 @@ public class GUISolid extends GUIElement{
                 glVertex2f(tw, th);
                 glTexCoord2f(0, uvh);
                 glVertex2f(0, th);
-
-                /*
-                th = h;
-                tw = (int)(th*ratio2);
-
-                if(tw < w){
-                    tw = w;
-                    th = (int)(tw*ratio1);
-                }
-
-                glTexCoord2f(0, 0);
-                glVertex2f(0, 0);
-                glTexCoord2f(uvw, 0);
-                glVertex2f(tw, 0);
-                glTexCoord2f(uvw, uvh);
-                glVertex2f(tw, th);
-                glTexCoord2f(0, uvh);
-                glVertex2f(0, th);*/
             }else {
                 glTexCoord2f(0, 0);
                 glVertex2f(this.left, this.top);
@@ -160,8 +154,13 @@ public class GUISolid extends GUIElement{
             }
         }
 
+
         glEnd();
-        glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
+
+        if(texture != null) {
+            glDisable(GL_TEXTURE_2D);
+        }
     }
 
 

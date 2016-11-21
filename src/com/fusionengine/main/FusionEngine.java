@@ -4,6 +4,7 @@ import com.fusionengine.core.Input;
 import com.fusionengine.gui.GUIElement;
 import com.fusionengine.gui.GUIManager;
 import com.fusionengine.gui.GUIScreen;
+import com.fusionengine.gui.elements.GUIButton;
 import com.fusionengine.gui.elements.GUISolid;
 import com.fusionengine.gui.elements.GUIText;
 import com.fusionengine.gui.util.Fonts;
@@ -12,9 +13,15 @@ import com.fusionengine.theme.Theme;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.*;
-import org.lwjgl.util.vector.Vector2f;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.util.Color;
 import org.newdawn.slick.UnicodeFont;
+
+import javax.management.monitor.Monitor;
+
+import java.awt.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -33,6 +40,8 @@ public class FusionEngine {
     private FusionEngine INSTANCE;
 
     private GUIManager guiManager;
+
+    private boolean resized = false;
 
     public FusionEngine(){
         INSTANCE = this;
@@ -108,18 +117,26 @@ public class FusionEngine {
             }
         }
 
-
+        getGuiManager().addScreen(themeScreen);
 
         GUIScreen menu = new GUIScreen();
 
+        GUISolid menuBackground = new GUISolid((Color)Color.BLACK, 0, 0, width, height);
+        menuBackground.relativePosition = true;
+        menu.addElement(menuBackground);
+        GUIButton button = new GUIButton("Options", 100, 100, 120, 60);
+        menu.addElement(button);
 
+        menu.show = false;
+
+        getGuiManager().addScreen(menu);
 
 
         while (!Display.isCloseRequested()) {
             width = Display.getWidth();
             height = Display.getHeight();
 
-            if (Display.wasResized()){
+            if (Display.wasResized() || resized){
                 glViewport(0, 0, width, height);
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
@@ -131,10 +148,12 @@ public class FusionEngine {
 
             Input.poll();
 
-            Shader.render();
+//            Shader.render();
+
+            guiManager.render(width, height);
 
             if(mode == Mode.Theme){
-                themeScreen.render(width, height);
+                //themeScreen.render(width, height);
                 boolean themechange = false;
 
                 boolean change = false;
@@ -167,41 +186,126 @@ public class FusionEngine {
 
                 if(Input.getKeyDown(Keyboard.KEY_RETURN)){
                     mode = Mode.Menu;
-                    GUISolid background = new GUISolid(Theme.themes[theme].root + Theme.themes[theme].background.src, 0, 0, width, height, !Theme.themes[theme].background.stretch);
-                    background.relativePosition = true;
-                    menu.addElement(background);
+
+                    menuBackground.loadTexture(Theme.themes[theme].root + Theme.themes[theme].background.src, !Theme.themes[theme].background.stretch);
+                    themeScreen.show = false;
+                    menu.show = true;
+
                 }
 
-                Display.update();
-                Display.sync(60);
+
             }else{
                 Display.setResizable(true);
-                menu.render(width, height);
 
-//                glColor3f(1.0f,0.5f,0.5f);
-//                glBegin(GL_QUADS);
-//                glVertex2f(0,0);
-//                glVertex2f(width,0);
-//                glVertex2f(width,height);
-//                glVertex2f(0,height);
-//                glEnd();
 
-                guiManager.render(width, height);
 
-                Display.update();
-                Display.sync(60);
             }
 
 
-//            ARBShaderObjects.glUseProgramObjectARB(0);
 
-            if (Display.isCloseRequested()) {
+            Display.update();
+            Display.sync(60);
+
+
+//            ARBShaderObjects.glUseProgramObjectARB(0);
+            if (Input.getKeyDown(Keyboard.KEY_F11)) {
+
+                    GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+                    boolean fullscreen = !Display.isFullscreen();
+                    if(fullscreen) {
+                        setDisplayMode(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight(), fullscreen);
+                    }else {
+                        setDisplayMode(800, 600, fullscreen);
+                        Display.setResizable(true);
+                    }
+                resized = true;
+
+            }
+            if (Display.isCloseRequested() || Input.getKeyDown(Keyboard.KEY_ESCAPE)) {
                 Display.destroy();
                 System.exit(0);
             }
         }
 
         Display.destroy();
+    }
+
+    public void setDisplayMode(int width, int height, boolean fullscreen) {
+
+        // return if requested DisplayMode is already set
+        if ((Display.getDisplayMode().getWidth() == width) &&
+                (Display.getDisplayMode().getHeight() == height) &&
+                (Display.isFullscreen() == fullscreen)) {
+            return;
+        }
+
+        try {
+            DisplayMode targetDisplayMode = null;
+
+            if (fullscreen) {
+                DisplayMode[] modes = Display.getAvailableDisplayModes();
+                int freq = 0;
+
+                for (int i=0;i<modes.length;i++) {
+                    DisplayMode current = modes[i];
+
+                    if ((current.getWidth() == width) && (current.getHeight() == height)) {
+                        if ((targetDisplayMode == null) || (current.getFrequency() >= freq)) {
+                            if ((targetDisplayMode == null) || (current.getBitsPerPixel() > targetDisplayMode.getBitsPerPixel())) {
+                                targetDisplayMode = current;
+                                freq = targetDisplayMode.getFrequency();
+                            }
+                        }
+
+                        // if we've found a match for bpp and frequence against the
+                        // original display mode then it's probably best to go for this one
+                        // since it's most likely compatible with the monitor
+                        if ((current.getBitsPerPixel() == Display.getDesktopDisplayMode().getBitsPerPixel()) &&
+                                (current.getFrequency() == Display.getDesktopDisplayMode().getFrequency())) {
+                            targetDisplayMode = current;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                targetDisplayMode = new DisplayMode(width,height);
+            }
+
+            if (targetDisplayMode == null) {
+                System.out.println("Failed to find value mode: "+width+"x"+height+" fs="+fullscreen);
+                return;
+            }
+
+            Display.setDisplayMode(targetDisplayMode);
+            Display.setFullscreen(fullscreen);
+
+        } catch (LWJGLException e) {
+            System.out.println("Unable to setup mode "+width+"x"+height+" fullscreen="+fullscreen + e);
+        }
+    }
+
+
+    public DisplayMode[] getDisplayModes(boolean fullscreen) throws LWJGLException{
+        DisplayMode displayMode = null;
+        DisplayMode[] modes = Display.getAvailableDisplayModes();
+
+        for (int i = 0; i < modes.length; i++)
+        {
+            /*if (modes[i].getWidth() == width
+                    && modes[i].getHeight() == height
+                    && modes[i].isFullscreenCapable())
+            {
+                displayMode = modes[i];
+            }*/
+            if(fullscreen){
+                if(modes[i].isFullscreenCapable())
+                    displayMode = modes[i];
+            }else {
+                displayMode = modes[i];
+            }
+
+        }
+        return modes;
     }
 
     public static void main(String[] argv) {

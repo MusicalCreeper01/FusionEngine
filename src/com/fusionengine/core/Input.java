@@ -2,6 +2,7 @@ package com.fusionengine.core;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.HashMap;
@@ -57,7 +58,7 @@ public class Input {
 
     public static Vector2f getMousePosition(){
         //return new Vector2f(Mouse.getDX(), Mouse.getDY()); // returns mouse movement since last poll
-        return new Vector2f(Mouse.getX(), Mouse.getY());
+        return new Vector2f(Mouse.getX(), Display.getHeight() - Mouse.getY());
     }
 
 

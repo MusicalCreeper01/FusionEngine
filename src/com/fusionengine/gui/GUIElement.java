@@ -5,9 +5,12 @@ public class GUIElement {
     public int x = 0;
     public int y = 0;
 
+    public int width = 0;
+    public int height = 0;
+
     public Object meta;
 
-    public boolean relativePosition = true;
+    public boolean relativePosition = false;
     public int left = 0;
     public int top = 0;
     public int right = 0;
