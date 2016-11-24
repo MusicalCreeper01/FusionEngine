@@ -2,6 +2,7 @@ package com.fusionengine.gui;
 
 import com.fusionengine.gui.util.Fonts;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.util.glu.GLU;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 import static org.lwjgl.opengl.GL11.*;
 
 public class GUIManager {
+
 
     private List<GUIScreen> screens = new ArrayList<>();
 
@@ -35,6 +37,8 @@ public class GUIManager {
     }*/
 
     public void render(int width, int height){
+
+
         glPushMatrix();
        // glCallList(displayList);
         for(GUIScreen screen : screens) {
@@ -42,6 +46,8 @@ public class GUIManager {
                 screen.render(width, height);
         }
         glPopMatrix();
+
+
     }
 
 }

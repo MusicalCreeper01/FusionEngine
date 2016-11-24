@@ -11,10 +11,10 @@ public class GUIElement {
     public Object meta;
 
     public boolean relativePosition = false;
-    public int left = 0;
-    public int top = 0;
-    public int right = 0;
-    public int bottom = 0;
+//    public int left = 0;
+//    public int top = 0;
+//    public int right = 0;
+//    public int bottom = 0;
 
     public void render(int width, int height){}
 

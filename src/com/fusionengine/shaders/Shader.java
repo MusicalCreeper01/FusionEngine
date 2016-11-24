@@ -19,7 +19,7 @@ public class Shader {
         screenShaders.add(shader);
     }
 
-    public static void render(){
+    public static void renderScreen(){
         for(Shader shad : screenShaders){
             ARBShaderObjects.glUseProgramObjectARB(shad.getProgramId());
             //Please note your program must be linked before calling this and I would advise the program be in use also.
@@ -29,6 +29,10 @@ public class Shader {
             //Then we pass the 0 value to the sampler meaning it is to use texture unit 0.
         }
         //   GL20.glUseProgram( shad.getProgramId() );
+    }
+
+    public void render(){
+        ARBShaderObjects.glUseProgramObjectARB(getProgramId());
     }
 
     // OpenGL handle that will point to the executable shader program

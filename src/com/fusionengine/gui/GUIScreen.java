@@ -22,6 +22,10 @@ public class GUIScreen {
         elements.add(element);
     }
 
+    public void removeElement(GUIElement element){
+        elements.remove(element);
+    }
+
     public GUIElement[] getElements(){
         return elements.toArray(new GUIElement[elements.size()]);
     }

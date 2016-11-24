@@ -15,7 +15,7 @@ public class GUIButton extends GUIElement{
         this.width = width;
         this.height = height;
 
-        GUISolid background = new GUISolid((Color)Color.CYAN, x, y, width, height);
+        GUISolid background = new GUISolid((Color)Color.GREY, x, y, width, height);
         this.background = background;
 
         GUIText text = new GUIText(s, x, y, width, height);

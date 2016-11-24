@@ -19,7 +19,9 @@ public class Theme {
 
     public class Background {
         public String src;
-        public boolean stretch;
+        public boolean stretch = false;
+
+        public boolean skybox = false;
 
         public Background(String s, boolean b){
             this.src = s;
@@ -27,7 +29,7 @@ public class Theme {
         }
     }
 
-    public Background background = new Background("../../assets/textures/background.jpg", false);
+    public Background background = new Background("assets/textures/background.jpg", false);
 
     public static String themeLocation = "themes";
 

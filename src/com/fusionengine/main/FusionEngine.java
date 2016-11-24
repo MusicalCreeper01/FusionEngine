@@ -8,6 +8,8 @@ import com.fusionengine.gui.elements.GUIButton;
 import com.fusionengine.gui.elements.GUISolid;
 import com.fusionengine.gui.elements.GUIText;
 import com.fusionengine.gui.util.Fonts;
+import com.fusionengine.rendering.Render;
+import com.fusionengine.rendering.helpers.RenderSkybox;
 import com.fusionengine.shaders.Shader;
 import com.fusionengine.theme.Theme;
 import org.lwjgl.LWJGLException;
@@ -16,12 +18,15 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.Color;
+import org.lwjgl.util.vector.Vector3f;
 import org.newdawn.slick.UnicodeFont;
 
-import javax.management.monitor.Monitor;
-
 import java.awt.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -48,6 +53,10 @@ public class FusionEngine {
         start();
     }
 
+    public Theme getTheme(){
+        return Theme.themes[theme];
+    }
+
     public FusionEngine getEngine(){
         return INSTANCE;
     }
@@ -55,6 +64,10 @@ public class FusionEngine {
     public GUIManager getGuiManager(){
         return guiManager;
     }
+
+    float lightAmbient[] = { 0.5f, 0.5f, 0.5f, 1.0f };// Ambient Light Values
+    float lightDiffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };// Diffuse Light Values
+    float lightPosition[] = { 0.0f, 1.0f, 0.0f, 1.0f };// Light Position
 
     public void start() {
         try {
@@ -131,26 +144,28 @@ public class FusionEngine {
 
         getGuiManager().addScreen(menu);
 
+        RenderSkybox skybox = null;
+        Shader skyShader = null;
+
+        boolean lighting = false;
 
         while (!Display.isCloseRequested()) {
             width = Display.getWidth();
             height = Display.getHeight();
 
             if (Display.wasResized() || resized){
-                glViewport(0, 0, width, height);
-                glMatrixMode(GL_PROJECTION);
-                glLoadIdentity();
-                glOrtho(0, width, height, 0, 1, -1);
-                glMatrixMode(GL_MODELVIEW);
+                Render.configure3D();
             }
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glLoadIdentity();
 
             Input.poll();
 
 //            Shader.render();
 
-            guiManager.render(width, height);
+
 
             if(mode == Mode.Theme){
                 //themeScreen.render(width, height);
@@ -187,7 +202,13 @@ public class FusionEngine {
                 if(Input.getKeyDown(Keyboard.KEY_RETURN)){
                     mode = Mode.Menu;
 
-                    menuBackground.loadTexture(Theme.themes[theme].root + Theme.themes[theme].background.src, !Theme.themes[theme].background.stretch);
+                    if(!Theme.themes[theme].background.skybox) {
+                        menuBackground.loadTexture(Theme.themes[theme].root + Theme.themes[theme].background.src, !Theme.themes[theme].background.stretch);
+                    }else{
+                        menu.removeElement(menuBackground);
+                        skybox = new RenderSkybox(Theme.themes[theme].root + Theme.themes[theme].background.src, new Vector3f(0,0,0));
+                        skyShader = new Shader("assets/shaders/skybox.vert", "assets/shaders/skybox.frag");
+                    }
                     themeScreen.show = false;
                     menu.show = true;
 
@@ -197,10 +218,32 @@ public class FusionEngine {
             }else{
                 Display.setResizable(true);
 
+                if(skybox != null) {
+                    Render.configure3D();
+
+                    skyShader.render();
+
+                    int loc = GL20.glGetUniformLocation(skyShader.getProgramId(), "texture_sampler");
+                    GL20.glUniform1i(loc, 0);
+
+                   /* ByteBuffer temp = ByteBuffer.allocateDirect(16);
+                    temp.order(ByteOrder.nativeOrder());
+                    int light = GL20.glGetUniformLocation(skyShader.getProgramId(), "ambientLight");
+                    GL20.glUniform4(light, (FloatBuffer)temp.asFloatBuffer().put(lightAmbient).flip());*/
+
+                    skybox.render();
+                    skybox.rotation.w += 0.1f;
+                }
+
+                menuBackground.width = width;
+                menuBackground.height = height;
 
 
             }
 
+            Render.configure2D();
+            guiManager.render(width, height);
+            Render.configure3D();
 
 
             Display.update();
@@ -221,6 +264,23 @@ public class FusionEngine {
                 resized = true;
 
             }
+            if(Input.getKeyDown(Keyboard.KEY_L)){
+                lighting = !lighting;
+                if(lighting){
+
+
+                    ByteBuffer temp = ByteBuffer.allocateDirect(16);
+                    temp.order(ByteOrder.nativeOrder());
+                    glLight(GL_LIGHT1, GL_AMBIENT, (FloatBuffer)temp.asFloatBuffer().put(lightAmbient).flip());// Setup The Ambient Light
+                    glLight(GL_LIGHT1, GL_DIFFUSE, (FloatBuffer)temp.asFloatBuffer().put(lightDiffuse).flip());// Setup The Diffuse Light
+                    glLight(GL_LIGHT1, GL_POSITION,(FloatBuffer)temp.asFloatBuffer().put(lightPosition).flip());// Position The Light
+                    glEnable(GL_LIGHT1);// Enable Light One
+                    glEnable(GL_LIGHTING);// Enable Lights
+                }else{
+                    glDisable(GL_LIGHTING);// Enable Lights
+                }
+            }
+
             if (Display.isCloseRequested() || Input.getKeyDown(Keyboard.KEY_ESCAPE)) {
                 Display.destroy();
                 System.exit(0);

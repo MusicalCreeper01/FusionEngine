@@ -1,10 +1,11 @@
 {
   "name": "Default Theme",
   "background": {
-    "src": "resources/background.png",
-    "stretch": false
+    "src": "resources/textures/skybox.jpg",
+    "stretch": false,
+    "skybox": true
   },
   "buttons": {
-    "src": "resources/button.png"
+    "src": "resources/textures/button.png"
   }
 }
